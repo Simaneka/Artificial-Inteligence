@@ -319,14 +319,37 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        cornerBools = ()
+
+        # Gotta check if we started in a corner.
+        try:
+            index = self.corners.index(self.startingPosition)
+        except:
+            index = -1
+
+        # Creating our boolean object representing whether we've reached all four corners.
+        for i in range(0,4):
+            if i == index:
+                cornerBools = cornerBools + (True,)
+            else:
+                cornerBools = cornerBools + (False,)
+
+
+        return (self.startingPosition, cornerBools)
+
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        one, two, three, four = state[1]
+        if one and two and three and four:
+            return True
+        return False
+
+        # util.raiseNotDefined()
 
     def getSuccessors(self, state):
         """
@@ -349,6 +372,32 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            x, y = state[0]
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                cost = 1
+                cornerBools = state[1]
+
+                # Next state is in a corner
+                if nextState in self.corners:
+                    index = self.corners.index(nextState)
+
+                    # Re-creating the corners boolean tuple depending on which corner we hit.
+                    temp = ()
+                    for i in range(0, 4):
+                        if i == index:
+                            temp = temp + (True,)
+                        else:
+                            temp = temp + (cornerBools[i],)
+
+                    cornerBools = temp
+
+                # ensuring proper packaging.
+                critical_data = (nextState, cornerBools)
+                successors.append((critical_data, action, cost))
 
         self._expanded += 1  # DO NOT CHANGE
         return successors
@@ -386,7 +435,37 @@ def cornersHeuristic(state, problem):
     # These are the walls of the maze, as a Grid (game.py)
     walls = problem.walls
 
+
     "*** YOUR CODE HERE ***"
+        # Heuristic = Manhattan distance to the furthest unvisited corner.
+
+    x, y = state[0]
+    cornerBools = state[1]
+
+    # Let's start by saying the distance is impossible (-1)
+    max_distance = -1
+    for i in range(0,4):
+        # We've visited this corner before, let's move on.
+        if cornerBools[i]:
+            continue
+
+        cornX, cornY = corners[i]
+        distance = getManhattanDistance(x, y, cornX, cornY)
+
+        # Ensure we always get the max.
+        max_distance = max(max_distance, distance)
+
+    # If all corners have been visited, having a heuristic of -1 would be inadvisable.
+    if max_distance == -1:
+        max_distance = 0
+
+    return max_distance
+
+
+# Returns the manhattan distance between two points.
+def getManhattanDistance(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)
+
     return 0  # Default to trivial solution
 
 
@@ -491,7 +570,62 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    def find(parent, i):
+        if parent[i] == None:
+            return i
+        return find(parent, parent[i])
+
+    def union(parent, rank, x, y):
+        xroot = find(parent, x) 
+        yroot = find(parent, y) 
+
+        if rank[xroot] < rank[yroot]: 
+            parent[xroot] = yroot
+        elif rank[xroot] > rank[yroot]:
+            parent[yroot] = xroot
+        else :
+            parent[yroot] = xroot
+            rank[xroot] += 1
+
+    position, foodGrid = state
+    unvisited_foods = foodGrid.asList()
+
+    if not unvisited_foods:
+        return 0
+
+    graph = []
+    for i in range(len(unvisited_foods)):
+        for j in range(1, len(unvisited_foods)):
+            graph.append([unvisited_foods[i], unvisited_foods[j], util.manhattanDistance(unvisited_foods[i], unvisited_foods[j])])
+
+    mst_length = 0
+    i = 0
+    e = 0
+
+    graph = sorted(graph, key=lambda x:x[2])
+
+    parent = {}
+    rank = {}
+
+    for food in unvisited_foods:
+        parent[food] = None
+        rank[food] = 0
+
+    while e < len(unvisited_foods) - 1:
+        u, v, w = graph[i]
+        i += 1
+        x = find(parent, u)
+        y = find(parent, v)
+
+        if x != y:
+            e += 1
+            mst_length += w
+            union(parent, rank, x, y)
+
+    closest_food = min([util.manhattanDistance(position, food) for food in unvisited_foods])
+
+    return closest_food +  mst_length
+    #return 0
 
 
 class ClosestDotSearchAgent(SearchAgent):
@@ -526,7 +660,9 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        
+        return search.uniformCostSearch(problem)
+        # util.raiseNotDefined()
 
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -563,7 +699,9 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x, y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        return state in self.food.asList()
+        # util.raiseNotDefined()
 
 
 def mazeDistance(point1, point2, gameState):
