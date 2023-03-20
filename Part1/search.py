@@ -226,9 +226,9 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
     # Use a priority queue, so the cost of actions is calculated with a provided heuristic
     fringe = util.PriorityQueue()
-    # Make an empty list of explored nodes
+    # Make list of explored nodes  empty 
     visited = []
-    # Make an empty list of actions
+    # Make list of actions empty
     actionList = []
     # Place the starting point in the priority queue
     fringe.push((problem.getStartState(), actionList),
@@ -251,7 +251,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
 
 # Abbreviations
-bfs = breadthFirstSearch
-dfs = depthFirstSearch
-astar = aStarSearch
-ucs = uniformCostSearch
+bfs = BreadthFirstSearch
+dfs = DepthFirstSearch
+astar = A*Search
+ucs = UniformCostSearch

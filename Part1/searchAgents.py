@@ -173,7 +173,7 @@ class PositionSearchProblem(search.SearchProblem):
         if warn and (gameState.getNumFood() != 1 or not gameState.hasFood(*goal)):
             print('Warning: this does not look like a regular search maze')
 
-        # For display purposes
+        # This is for display purposes
         self._visited, self._visitedlist, self._expanded = {}, [], 0  # DO NOT CHANGE
 
     def getStartState(self):
