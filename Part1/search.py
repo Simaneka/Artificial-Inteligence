@@ -89,50 +89,23 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    # # create fringe to store nodes
-    # fringe = util.Stack()
-    # # track visited nodes
-    # visited = []
-    # # push initial state to fringe
-    # fringe.push((problem.getStartState(), [], 1))
 
-    # while not fringe.isEmpty():
-    #     node = fringe.pop()
-    #     state = node[0]
-    #     actions = node[1]
-    #     # visited node
-    #     # goal check
-    #     if problem.isGoalState(state):
-    #         return actions
-    #     if state not in visited:
-    #         visited.append(state)
-    #         # visit child nodes
-    #         successors = problem.getSuccessors(state)
-    #         for child in successors:
-    #             # store state, action and cost = 1
-    #             child_state = child[0]
-    #             child_action = child[1]
-    #             if child_state not in visited:
-    #                 # add child nodes
-    #                 child_action = actions + [child_action]
-    #                 fringe.push((child_state, child_action, 1))
+    stack = util.Stack()
+    goneTo = set() 
+    startNode = (problem.getStartState(), 0, [])
+    stack.push(startNode)
 
-    stackDFS = util.Stack()
-    done = set()  # store passed node
-    startNode = (problem.getStartState(), 0, [])  # (node, cost, path)
-    stackDFS.push(startNode)
-
-    while not stackDFS.isEmpty():
-        (node, cost, path) = stackDFS.pop()
+    while not stack.isEmpty():
+        (node, cost, path) = stack.pop()
         if problem.isGoalState(node):
             return path
-        if not node in done:
-            done.add(node)
+        if not node in goneTo:
+            goneTo.add(node)
             for next_node, next_action, next_cost in problem.getSuccessors(node):
                 totalCost = cost + next_cost
                 totalPath = path + [next_action]
                 totalState = (next_node, totalCost, totalPath)
-                stackDFS.push(totalState)
+                stack.push(totalState)
 
     util.raiseNotDefined()
 
@@ -140,50 +113,25 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    # # create fringe to store nodes
-    # fringe = util.Queue()
-    # # track visited nodes
-    # visited = []
-    # # push initial state to fringe
-    # fringe.push((problem.getStartState(), [], 1))
 
-    # while not fringe.isEmpty():
-    #     node = fringe.pop()
-    #     state = node[0]
-    #     actions = node[1]
-    #     # goal check
-    #     if problem.isGoalState(state):
-    #         return actions
-    #     if state not in visited:
-    #         visited.append(state)
-    #         # visit child nodes
-    #         successors = problem.getSuccessors(state)
-    #         for child in successors:
-    #             # store state, action and cost = 1
-    #             child_state = child[0]
-    #             child_action = child[1]
-    #             if child_state not in visited:
-    #                 # add child nodes
-    #                 child_action = actions + [child_action]
-    #                 fringe.push((child_state, child_action, 1))
 
-    queueBFS = util.Queue()
-    done = set()  # store passed state
+    queue = util.Queue()
+    goneTo = set()  # store passed state
     # start contains node, cost, and path
     startNode = (problem.getStartState(), 0, [])
-    queueBFS.push(startNode)
+    queue.push(startNode)
 
-    while not queueBFS.isEmpty():
-        (node, cost, path) = queueBFS.pop()
+    while not queue.isEmpty():
+        (node, cost, path) = queue.pop()
         if problem.isGoalState(node):
             return path
-        if not node in done:
-            done.add(node)
+        if not node in goneTo:
+            goneTo.add(node)
             for next_node, next_action, next_cost in problem.getSuccessors(node):
                 totalCost = cost + next_cost
                 totalPath = path + [next_action]
                 totalState = (next_node, totalCost, totalPath)
-                queueBFS.push(totalState)
+                queue.push(totalState)
     util.raiseNotDefined()
 
 
@@ -191,23 +139,22 @@ def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
 
-    priorityQueueUCS = util.PriorityQueue()
-    done = set()  # store passed state
-    # start contains node, cost, and path
+    pQueue = util.PriorityQueue()
+    goneTo = set()
     startNode = (problem.getStartState(), 0, [])
-    priorityQueueUCS.push(startNode, 0)
+    pQueue.push(startNode, 0)
 
-    while not priorityQueueUCS .isEmpty():
-        (node, cost, path) = priorityQueueUCS .pop()
+    while not pQueue .isEmpty():
+        (node, cost, path) = pQueue .pop()
         if problem.isGoalState(node):
             return path
-        if not node in done:
-            done.add(node)
+        if not node in goneTo:
+            goneTo.add(node)
             for next_node, next_action, next_cost in problem.getSuccessors(node):
                 totalCost = cost + next_cost
                 totalPath = path + [next_action]
                 totalState = (next_node, totalCost, totalPath)
-                priorityQueueUCS.push(totalState, totalCost)
+                pQueue.push(totalState, totalCost)
 
     util.raiseNotDefined()
 
@@ -224,19 +171,15 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
 
-    # Use a priority queue, so the cost of actions is calculated with a provided heuristic
     fringe = util.PriorityQueue()
-    # Make list of explored nodes  empty 
-    visited = []
-    # Make list of actions empty
+    goneTo = []
     actionList = []
-    # Place the starting point in the priority queue
     fringe.push((problem.getStartState(), actionList),
                 heuristic(problem.getStartState(), problem))
     while fringe:
         node, actions = fringe.pop()
-        if not node in visited:
-            visited.append(node)
+        if not node in goneTo:
+            goneTo.append(node)
             if problem.isGoalState(node):
                 return actions
             for successor in problem.getSuccessors(node):
@@ -247,11 +190,10 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 fringe.push((coordinate, nextActions), nextCost)
     return []
 
-    util.raiseNotDefined()
 
 
 # Abbreviations
-bfs = BreadthFirstSearch
-dfs = DepthFirstSearch
-astar = A*Search
-ucs = UniformCostSearch
+bfs = breadthFirstSearch
+dfs = depthFirstSearch
+astar = aStarSearch
+ucs = uniformCostSearch
