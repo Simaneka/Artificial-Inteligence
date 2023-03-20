@@ -43,7 +43,7 @@ import search
 
 
 class GoWestAgent(Agent):
-    "An agent that goes West until it can't."
+    "This an agent that goes in the West direction until it can't."
 
     def getAction(self, state):
         "The agent receives a GameState (defined in pacman.py)."
