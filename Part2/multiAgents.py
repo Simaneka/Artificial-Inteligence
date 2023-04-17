@@ -155,82 +155,68 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        # Format of result = [score, action]
-        result = self.get_value(gameState, 0, 0)
+        #The method gets the legal moves for Pacman from the current game state using the getLegalActions method of the gameState object.
 
-        # Return the action from result
-        return result[1]
+        Pacman_legal_moves = gameState.getLegalActions(self.PACMAN_INDEX)
+        #The "value = -self.INF" method initializes the variable value to negative infinity, which will be used to keep track of the best value found so far.
+        value = -self.INF
+        for pacman_move in pacman_legal_moves:
+            current_value = self._get_value(gameState.generateSuccessor(self.PACMAN_INDEX, pacman_move), 1, self.INIT_DEPTH)
+            if value < current_value:
+                value = current_value
+                best_move = pacman_move
+        return best_move
 
-    def get_value(self, gameState, index, depth):
-        """
-        Returns value as pair of [score, action] based on the different cases:
-        1. Terminal state
-        2. Max-agent
-        3. Min-agent
-        """
-        # Terminal states:
-        if len(gameState.getLegalActions(index)) == 0 or depth == self.depth:
-            return gameState.getScore(), ""
+    inf = 100000000000
+    Pacman_index = 0
+    Initial_depth = 0
 
-        # Max-agent: Pacman has index = 0
-        if index == 0:
-            return self.max_value(gameState, index, depth)
+    #The "_getValue" method below is used to calculate the value of a given game state,
+    #  taking into account the possible moves of both the maximizing and minimizing players.
 
-        # Min-agent: Ghost has index > 0
+    def _getValue(self, gameState, agent_index, current_search_depth):
+        if self._check_is_terminal_state(gameState, current_search_depth):
+            return self.evaluationFunction(gameState)
+        elif agent_index == self.PACMAN_INDEX:
+            return self._get_max_value(gameState, current_search_depth) 
         else:
-            return self.min_value(gameState, index, depth)
+            return self._get_min_value(gameState, agent_index, current_search_depth)
+        
+    #The method "_check_terminal_state"  takes two parameters: gameState and current_search_depth 
+    # to check if current_search_depth is equal to the depth of the search tree. 
+    # If it is, then the method returns True to indicate that the current node is a terminal state.
 
-    def max_value(self, gameState, index, depth):
-        """
-        Returns the max utility value-action for max-agent
-        """
-        legalMoves = gameState.getLegalActions(index)
-        max_value = float("-inf")
-        max_action = ""
+    def _check_terminal_state(self, gameState, current_search_depth):
+        if current_search_depth == self.depth or gameState.isWin() or gameState.isLose():
+            return True
+        else:
+            return False
 
-        for action in legalMoves:
-            successor = gameState.generateSuccessor(index, action)
-            successor_index = index + 1
-            successor_depth = depth
+    def _get_successor_of_state(self, gameState, agent_index):
+        agent_legal_moves = gameState.getLegalActions(agent_index)
+        state_successors = []
+        for agent_move in agent_legal_moves:
+            state_successors.append(gameState.generateSuccessor(agent_index, agent_move))
+        return state_successors
 
-            # Update the successor agent's index and depth if it's pacman
-            if successor_index == gameState.getNumAgents():
-                successor_index = 0
-                successor_depth += 1
+    def _get_maximum_value(self, gameState, search_depth):
+        value = -self.INF
+        pacman_successors = self._get_successor_of_state(gameState, self.Pacman_index)
+        for successor in pacman_successors:
+            value = max(value, self._get_value(successor, 1, search_depth))         # 1 is the index of the ghost
+        return value
 
-            current_value = self.get_value(successor, successor_index, successor_depth)[0]
-
-            if current_value > max_value:
-                max_value = current_value
-                max_action = action
-
-        return max_value, max_action
-
-    def min_value(self, gameState, index, depth):
-        """
-        Returns the min utility value-action for min-agent
-        """
-        legalMoves = gameState.getLegalActions(index)
-        min_value = float("inf")
-        min_action = ""
-
-        for action in legalMoves:
-            successor = gameState.generateSuccessor(index, action)
-            successor_index = index + 1
-            successor_depth = depth
-
-            # Update the successor agent's index and depth if it's pacman
-            if successor_index == gameState.getNumAgents():
-                successor_index = 0
-                successor_depth += 1
-
-            current_value = self.get_value(successor, successor_index, successor_depth)[0]
-
-            if current_value < min_value:
-                min_value = current_value
-                min_action = action
-
-        return min_value, min_action
+    def _get_min_value(self, gameState, agent_index, search_depth):
+        value = self.INF
+        ghost_num = gameState.getNumAgents() - 1
+        ghost_successors = self._get_successor_of_state(gameState, agent_index)
+        if agent_index == ghost_num:
+            for successor in ghost_successors:
+                value = min(value, self._get_value(successor, self.Pacman_index, search_depth + 1))     # min layer finished
+        else:
+            for successor in ghost_successors:
+                value = min(value, self._get_value(successor, agent_index + 1, search_depth))
+        return value
 
         util.raiseNotDefined()
 
@@ -238,15 +224,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
+      
     """
+    #AlphaBetaAgent class serves to implement the minimax algorithm with alpha-beta pruning so it efficiently search the game tree and 
+    # find the best action for the Pacman player while considering the moves of the ghost players.
 
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        
         # Format of result = [action, score]
         # Initial state: index = 0, depth = 0, alpha = -infinity, beta = +infinity
+
         result = self.getBestActionAndScore(game_state, 0, 0, float("-inf"), float("inf"))
 
         # Return the action from result
