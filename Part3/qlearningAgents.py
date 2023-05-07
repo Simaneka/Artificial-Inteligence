@@ -12,11 +12,14 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+import random
+from collections import defaultdict
+
+import util
+from featureExtractors import *
 from game import *
 from learningAgents import ReinforcementAgent
-from featureExtractors import *
 
-import random,util,math
 
 class QLearningAgent(ReinforcementAgent):
     """
@@ -43,6 +46,7 @@ class QLearningAgent(ReinforcementAgent):
         ReinforcementAgent.__init__(self, **args)
 
         "*** YOUR CODE HERE ***"
+        self.Q = defaultdict(lambda: defaultdict(float))
 
     def getQValue(self, state, action):
         """
@@ -51,7 +55,7 @@ class QLearningAgent(ReinforcementAgent):
           or the Q node value otherwise
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.Q[state][action]
 
 
     def computeValueFromQValues(self, state):
@@ -62,7 +66,10 @@ class QLearningAgent(ReinforcementAgent):
           terminal state, you should return a value of 0.0.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        legalActions = self.getLegalActions(state)
+        if not legalActions:
+            return 0.0
+        return max(self.getQValue(state, action) for action in legalActions)
 
     def computeActionFromQValues(self, state):
         """
@@ -71,7 +78,14 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        legalActions = self.getLegalActions(state)
+        if not legalActions:
+            return None
+        # § Break ties randomly
+        value = self.computeValueFromQValues(state)
+        actions = [action for action in legalActions
+                   if self.getQValue(state, action) == value]
+        return random.choice(actions)
 
     def getAction(self, state):
         """
@@ -88,9 +102,11 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         action = None
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-
-        return action
+        #Here we getAction method balances exploration (taking random actions) with exploitation (taking the best known action) in order to learn an optimal policy through reinforcement learning.
+        legalActions = self.getLegalActions(state)
+        if random.random() < self.epsilon:
+            return random.choice(legalActions)
+        return self.getPolicy(state)
 
     def update(self, state, action, nextState, reward):
         """
@@ -102,7 +118,11 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # we update function updates the Q-value for a state-action pair based on the observed transition and the TD error, which drives the agent towards the optimal policy over time.
+        Q = self.Q
+        estimated_return = reward + self.discount * self.computeValueFromQValues(nextState)
+        Q[state][action] += self.alpha * (estimated_return - Q[state][action])
+
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
@@ -165,14 +185,24 @@ class ApproximateQAgent(PacmanQAgent):
           where * is the dotProduct operator
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+       # here we get the feature vector for the state-action pair
+        features = self.featExtractor.getFeatures(state, action)
+         # we Compute the Q-value as the dot product between the weight vector and the feature vector
+        return self.weights * features
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #here we updating the weights based on the observed transitions, the Q-learning algorithm can learn an approximation of the optimal Q-function.
+        estimated_return = reward + self.discount * self.computeValueFromQValues(nextState)
+        diff = estimated_return - self.getQValue(state, action)
+        features = self.featExtractor.getFeatures(state, action)
+        weights = self.weights
+        for k in features:
+            weights[k] += self.alpha * diff * features[k]
+
 
     def final(self, state):
         "Called at the end of each game."
