@@ -74,6 +74,8 @@ def question3e():
 def question6():
     answerEpsilon = None
     answerLearningRate = None
+    # Added the not possible so that the answer is corrent for when the whole bridge world is 90 degrees
+    return 'NOT POSSIBLE'
     return answerEpsilon, answerLearningRate
     # If not possible, return 'NOT POSSIBLE'
 

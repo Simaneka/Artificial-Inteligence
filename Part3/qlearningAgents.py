@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -41,6 +41,7 @@ class QLearningAgent(ReinforcementAgent):
         - self.getLegalActions(state)
           which returns legal actions for a state
     """
+
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
@@ -55,8 +56,9 @@ class QLearningAgent(ReinforcementAgent):
           or the Q node value otherwise
         """
         "*** YOUR CODE HERE ***"
+        # returning the state and the action that should be taken
         return self.Q[state][action]
-
+        # util.raiseNotDefined()
 
     def computeValueFromQValues(self, state):
         """
@@ -66,10 +68,14 @@ class QLearningAgent(ReinforcementAgent):
           terminal state, you should return a value of 0.0.
         """
         "*** YOUR CODE HERE ***"
-        legalActions = self.getLegalActions(state)
-        if not legalActions:
+        # storing all the allowed actions
+        allowedActions = self.getLegalActions(state)
+        # returning no action 0.0 if there are no actions allowed
+        if not allowedActions:
             return 0.0
-        return max(self.getQValue(state, action) for action in legalActions)
+
+        # returning the values that were calutated from the givien actions
+        return max(self.getQValue(state, action) for action in allowedActions)
 
     def computeActionFromQValues(self, state):
         """
@@ -78,12 +84,12 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-        legalActions = self.getLegalActions(state)
-        if not legalActions:
+        allowedActions = self.getLegalActions(state)
+        if not allowedActions:
             return None
         # § Break ties randomly
         value = self.computeValueFromQValues(state)
-        actions = [action for action in legalActions
+        actions = [action for action in allowedActions
                    if self.getQValue(state, action) == value]
         return random.choice(actions)
 
@@ -99,13 +105,13 @@ class QLearningAgent(ReinforcementAgent):
           HINT: To pick randomly from a list, use random.choice(list)
         """
         # Pick Action
-        legalActions = self.getLegalActions(state)
+        allowedActions = self.getLegalActions(state)
         action = None
         "*** YOUR CODE HERE ***"
-        #Here we getAction method balances exploration (taking random actions) with exploitation (taking the best known action) in order to learn an optimal policy through reinforcement learning.
-        legalActions = self.getLegalActions(state)
+        # Here we getAction method balances taking random actions with taking the best known action in order to learn an optimal policy through reinforcement learning.
+        allowedActions = self.getLegalActions(state)
         if random.random() < self.epsilon:
-            return random.choice(legalActions)
+            return random.choice(allowedActions)
         return self.getPolicy(state)
 
     def update(self, state, action, nextState, reward):
@@ -120,9 +126,9 @@ class QLearningAgent(ReinforcementAgent):
         "*** YOUR CODE HERE ***"
         # we update function updates the Q-value for a state-action pair based on the observed transition and the TD error, which drives the agent towards the optimal policy over time.
         Q = self.Q
-        estimated_return = reward + self.discount * self.computeValueFromQValues(nextState)
+        estimated_return = reward + self.discount * \
+            self.computeValueFromQValues(nextState)
         Q[state][action] += self.alpha * (estimated_return - Q[state][action])
-
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
@@ -134,7 +140,7 @@ class QLearningAgent(ReinforcementAgent):
 class PacmanQAgent(QLearningAgent):
     "Exactly the same as QLearningAgent, but with different default parameters"
 
-    def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
+    def __init__(self, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
         """
         These default parameters can be changed from the pacman.py command line.
         For example, to change the exploration rate, try:
@@ -158,8 +164,8 @@ class PacmanQAgent(QLearningAgent):
         informs parent of action for Pacman.  Do not change or remove this
         method.
         """
-        action = QLearningAgent.getAction(self,state)
-        self.doAction(state,action)
+        action = QLearningAgent.getAction(self, state)
+        self.doAction(state, action)
         return action
 
 
@@ -171,6 +177,7 @@ class ApproximateQAgent(PacmanQAgent):
        and update.  All other QLearningAgent functions
        should work as is.
     """
+
     def __init__(self, extractor='IdentityExtractor', **args):
         self.featExtractor = util.lookup(extractor, globals())()
         PacmanQAgent.__init__(self, **args)
@@ -187,7 +194,7 @@ class ApproximateQAgent(PacmanQAgent):
         "*** YOUR CODE HERE ***"
        # here we get the feature vector for the state-action pair
         features = self.featExtractor.getFeatures(state, action)
-         # we Compute the Q-value as the dot product between the weight vector and the feature vector
+        # we Compute the Q-value as the dot product between the weight vector and the feature vector
         return self.weights * features
 
     def update(self, state, action, nextState, reward):
@@ -195,14 +202,14 @@ class ApproximateQAgent(PacmanQAgent):
            Should update your weights based on transition
         """
         "*** YOUR CODE HERE ***"
-        #here we updating the weights based on the observed transitions, the Q-learning algorithm can learn an approximation of the optimal Q-function.
-        estimated_return = reward + self.discount * self.computeValueFromQValues(nextState)
+        # here we updating the weights based on the observed transitions, the Q-learning algorithm can learn an approximation of the optimal Q-function.
+        estimated_return = reward + self.discount * \
+            self.computeValueFromQValues(nextState)
         diff = estimated_return - self.getQValue(state, action)
         features = self.featExtractor.getFeatures(state, action)
         weights = self.weights
         for k in features:
             weights[k] += self.alpha * diff * features[k]
-
 
     def final(self, state):
         "Called at the end of each game."
