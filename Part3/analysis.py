@@ -27,6 +27,7 @@ def question2():
 
 
 def question3a():
+    # added values to the tuple that is returned by question3a
     answerDiscount = 0.8
     answerNoise = 0.1
     answerLivingReward = -3.5
@@ -35,6 +36,7 @@ def question3a():
 
 
 def question3b():
+    # added values to the tuple that is returned by question3b
     answerDiscount = 0.3
     answerNoise = 0.2
     answerLivingReward = -1.5
@@ -43,6 +45,7 @@ def question3b():
 
 
 def question3c():
+    # added values to the tuple that is returned by question3c
     answerDiscount = 0.8
     answerNoise = 0.1
     answerLivingReward = -0.5
@@ -51,6 +54,7 @@ def question3c():
 
 
 def question3d():
+    # added values to the tuple that is returned by question3d
     answerDiscount = 0.9
     answerNoise = 0.2
     answerLivingReward = 0.0
@@ -59,6 +63,7 @@ def question3d():
 
 
 def question3e():
+    # added values to the tuple that is returned by question3e
     answerDiscount = 0.9
     answerNoise = 0.2
     answerLivingReward = 5000
